@@ -1,14 +1,18 @@
-# Approval Workflow System
+==================================================
+Approval Workflow System
+==================================================
 
-A modern full-stack internal approval platform for managing leave requests, reimbursements, overtime applications, and multi-stage approval processes.
+A modern full-stack internal approval platform for managing leave requests,
+reimbursements, overtime applications, and multi-stage approval processes.
 
-Built with a modular frontend/backend architecture and designed for real business workflows.
+Built with a modular frontend/backend architecture and designed for real
+business workflows.
 
----
+==================================================
+FEATURES
+==================================================
 
-# Features
-
-## Core Workflow
+[Core Workflow]
 
 - Create approval requests
 - Save draft requests
@@ -19,28 +23,29 @@ Built with a modular frontend/backend architecture and designed for real busines
 - View approval timeline
 - Upload attachments
 
-## Multi-Role Approval Process
 
-### Requester
+[Multi-Role Approval Process]
+
+Requester
 - Create and manage requests
 - Edit drafts / returned items
 - Track progress
 - Review own history
 
-### Manager
+Manager
 - Review pending requests
 - Approve requests
 - Return requests for revision
 - Reject requests
 - View request details
 
-### HR
+HR
 - Final review process
 - Approve / reject requests
 - Handle HR queue
 - Review completed cases
 
-### Admin
+Admin
 - Dashboard overview
 - User management
 - Department management
@@ -48,13 +53,14 @@ Built with a modular frontend/backend architecture and designed for real busines
 - Manager mapping
 - System data administration
 
----
 
-# Latest Project Status
+==================================================
+LATEST PROJECT STATUS
+==================================================
 
-## Completed Modules
+[Completed Modules]
 
-### Frontend
+Frontend
 - Login page
 - Role-based routing
 - Request pages
@@ -65,7 +71,7 @@ Built with a modular frontend/backend architecture and designed for real busines
 - Responsive UI components
 - Global state management
 
-### Backend
+Backend
 - RESTful API structure
 - Modular route/controller/service architecture
 - Authentication API
@@ -73,18 +79,18 @@ Built with a modular frontend/backend architecture and designed for real busines
 - Admin APIs
 - Clean folder organization
 
-### Admin APIs Completed
-- `/api/admin/dashboard`
-- `/api/admin/users`
-- `/api/admin/departments`
-- `/api/admin/manager-mappings`
+Admin APIs Completed
+- /api/admin/dashboard
+- /api/admin/users
+- /api/admin/departments
+- /api/admin/manager-mappings
 
----
 
-# Tech Stack
+==================================================
+TECH STACK
+==================================================
 
-## Frontend
-
+Frontend
 - React
 - TypeScript
 - Vite
@@ -92,39 +98,36 @@ Built with a modular frontend/backend architecture and designed for real busines
 - Zustand
 - TanStack Query
 
-## Backend
-
+Backend
 - Node.js
 - Express
 - TypeScript
 - REST API
 
-## Next Phase
-
+Next Phase
 - Database persistence layer
 - Prisma ORM / SQL integration
 - JWT authentication
 - Toast notifications
 - Validation improvements
 
----
 
-# System Roles
+==================================================
+SYSTEM ROLES
+==================================================
 
-| Role | Description |
-|------|------------|
-| Requester | Submit and track requests |
-| Manager | First-stage approver |
-| HR | Final reviewer |
-| Admin | System administrator |
+Requester : Submit and track requests
+Manager   : First-stage approver
+HR        : Final reviewer
+Admin     : System administrator
 
----
 
-# Project Structure
+==================================================
+PROJECT STRUCTURE
+==================================================
 
-## Frontend
+[Frontend]
 
-```text
 frontend/src
 ├─ components
 ├─ pages
@@ -136,7 +139,8 @@ frontend/src
 ├─ types
 └─ styles
 
-Backend
+
+[Backend]
 
 backend/src
 ├─ controllers
@@ -151,48 +155,66 @@ backend/src
 ├─ repositories
 └─ utils
 
-Getting Started
+
+==================================================
+GETTING STARTED
+==================================================
 
 Install Dependencies
-
 npm install
 
 Run Frontend
-
 npm run dev
 
 Run Backend
-
 npm run dev
 
-Demo Accounts
+
+==================================================
+DEMO ACCOUNTS
+==================================================
 
 requester / 1234
 manager   / 1234
 hr        / 1234
 admin     / 1234
 
-Roadmap
+
+==================================================
+ROADMAP
+==================================================
+
 In Progress
-Database migration
-Persistent data storage
+- Database migration
+- Persistent data storage
+
 Planned
-JWT auth
-Audit logs
-Export reports
-Notification system
-Better UI feedback
-Deployment
-License
+- JWT auth
+- Audit logs
+- Export reports
+- Notification system
+- Better UI feedback
+- Deployment
+
+
+==================================================
+LICENSE
+==================================================
 
 Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)
 
 This ensures improvements and hosted modifications remain open source.
 
-Contributing
+
+==================================================
+CONTRIBUTING
+==================================================
 
 Issues, pull requests, and suggestions are welcome.
 
-Disclaimer
 
-This project is provided as is, without warranty of any kind.
+==================================================
+DISCLAIMER
+==================================================
+
+This project is provided "as is", without warranty of any kind.
