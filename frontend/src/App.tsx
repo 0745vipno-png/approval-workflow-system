@@ -6,7 +6,7 @@ import { Providers } from "./providers.tsx";
  * 目前它只做一件事：
  * 把所有全域 Provider 包起來。
  *
- * 之後如果你要加：
+ * 之後如果要加：
  * - Router
  * - React Query
  * - Theme Provider
