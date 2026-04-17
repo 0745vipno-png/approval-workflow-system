@@ -286,7 +286,7 @@ ApprovalController
 AdminController
 NotificationController
 
-七、如果要更貼近 GUI 專案，前後端對照
+七、前後端對照
 
 | 前端頁面    | 對應後端模組                      | 對應資料表                   |
 | ------- | --------------------------- | ----------------------- |
