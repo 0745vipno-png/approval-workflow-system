@@ -204,11 +204,15 @@ LICENSE
 Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)
 
 ⚠️ **Important Note for Developers & Companies:**
+
 Unlike the standard GPL, the **AGPL-3.0** requires that if you modify this 
+
 system and run it as a web service (SaaS), you **MUST** make your modified 
+
 source code available to your users. 
 
 This ensures that any improvements made to this Approval System remain 
+
 open-source for the community.
 
 ==================================================
