@@ -1,0 +1,6 @@
+### 測試 1
+GET http://localhost:3000/api/requests
+
+
+### 測試 2 (中間多空兩行，確保這行開頭是 PATCH)
+PATCH http://localhost:3000/api/requests/1/cancel

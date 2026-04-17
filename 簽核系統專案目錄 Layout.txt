@@ -1,0 +1,297 @@
+approval-system/
+├── frontend/                  # 前端 GUI 專案
+├── backend/                   # 後端 API 專案
+├── database/                  # DB schema / seed / migration
+├── docs/                      # 專案文件
+├── assets/                    # 設計稿 / 圖片 / icons
+├── .env.example
+├── docker-compose.yml
+├── README.md
+
+
+frontend/
+├── public/
+├── src/
+│   ├── app/
+│   ├── routes/
+│   ├── layouts/
+│   ├── pages/
+│   ├── components/
+│   ├── modules/
+│   ├── hooks/
+│   ├── store/
+│   ├── services/
+│   ├── utils/
+│   ├── constants/
+│   ├── types/
+│   ├── styles/
+│   ├── assets/
+│   └── main.tsx
+├── package.json
+└── vite.config.ts
+
+
+1. routes/
+
+管理路由。
+
+routes/
+├── index.tsx
+├── auth.routes.tsx
+├── requester.routes.tsx
+├── manager.routes.tsx
+├── hr.routes.tsx
+└── admin.routes.tsx
+
+
+2. layouts/
+
+放整體版型。
+
+layouts/
+├── AuthLayout.tsx
+├── DashboardLayout.tsx
+└── AdminLayout.tsx
+
+功能
+Navbar
+Sidebar
+Content Container
+
+3. pages/
+
+放實際頁面（路由頁）
+
+pages/
+├── auth/
+│   └── LoginPage.tsx
+│
+├── requester/
+│   ├── DashboardPage.tsx
+│   ├── RequestListPage.tsx
+│   ├── RequestCreatePage.tsx
+│   ├── RequestEditPage.tsx
+│   └── RequestDetailPage.tsx
+│
+├── manager/
+│   ├── DashboardPage.tsx
+│   ├── PendingApprovalPage.tsx
+│   ├── ApprovalDetailPage.tsx
+│   └── ProcessedPage.tsx
+│
+├── hr/
+│   ├── DashboardPage.tsx
+│   ├── PendingHrPage.tsx
+│   ├── HrDetailPage.tsx
+│   └── HistoryPage.tsx
+│
+├── admin/
+│   ├── DashboardPage.tsx
+│   ├── UserManagementPage.tsx
+│   ├── DepartmentPage.tsx
+│   ├── ManagerMappingPage.tsx
+│   └── RoleAssignmentPage.tsx
+│
+└── common/
+    ├── NotificationPage.tsx
+    ├── ProfilePage.tsx
+    └── NotFoundPage.tsx
+
+
+4. components/
+
+共用元件。
+
+components/
+├── ui/
+│   ├── Button.tsx
+│   ├── Input.tsx
+│   ├── Select.tsx
+│   ├── Modal.tsx
+│   ├── Badge.tsx
+│   └── Card.tsx
+│
+├── table/
+│   └── DataTable.tsx
+│
+├── form/
+│   ├── FormField.tsx
+│   └── DatePicker.tsx
+│
+├── approval/
+│   ├── StatusBadge.tsx
+│   ├── ApprovalStepper.tsx
+│   └── ApprovalTimeline.tsx
+│
+└── layout/
+    ├── Navbar.tsx
+    ├── Sidebar.tsx
+    └── PageHeader.tsx
+	
+5. modules/
+
+依業務功能切分（很推薦）。
+
+modules/
+├── auth/
+├── request/
+├── approval/
+├── notification/
+└── admin/
+
+request/
+├── api.ts
+├── hooks.ts
+├── types.ts
+└── helpers.ts
+
+6. services/
+
+API 呼叫層。
+
+services/
+├── http.ts
+├── auth.service.ts
+├── request.service.ts
+├── approval.service.ts
+├── admin.service.ts
+└── notification.service.ts
+
+7. store/
+
+全域狀態管理（Redux / Zustand / Pinia）。
+
+store/
+├── auth.store.ts
+├── app.store.ts
+└── notification.store.ts
+
+utils/
+
+工具函式。
+
+utils/
+├── date.ts
+├── format.ts
+├── permission.ts
+├── validation.ts
+└── download.ts
+
+9. constants/
+
+常數集中管理。
+
+constants/
+├── roles.ts
+├── status.ts
+├── routes.ts
+└── messages.ts
+10. types/
+
+TypeScript 型別。
+
+types/
+├── user.ts
+├── request.ts
+├── approval.ts
+└── common.ts
+
+二、Backend 目錄規劃
+
+backend/
+├── src/
+│   ├── config/
+│   ├── controllers/
+│   ├── routes/
+│   ├── services/
+│   ├── repositories/
+│   ├── middlewares/
+│   ├── models/
+│   ├── validators/
+│   ├── constants/
+│   ├── utils/
+│   ├── jobs/
+│   └── app.ts
+├── package.json
+└── tsconfig.json
+
+controllers/
+
+接 API Request。
+
+controllers/
+├── auth.controller.ts
+├── request.controller.ts
+├── approval.controller.ts
+├── admin.controller.ts
+└── notification.controller.ts
+
+services/
+
+商業邏輯核心。
+
+services/
+├── auth.service.ts
+├── request.service.ts
+├── approval.service.ts
+├── workflow.service.ts
+├── notification.service.ts
+└── permission.service.ts
+
+repositories/
+
+資料庫存取層。
+
+repositories/
+├── user.repository.ts
+├── request.repository.ts
+├── approval.repository.ts
+└── manager.repository.ts
+
+middlewares/
+
+middlewares/
+├── auth.middleware.ts
+├── role.middleware.ts
+├── error.middleware.ts
+└── logger.middleware.ts
+
+validators/
+
+API 驗證。
+
+validators/
+├── auth.validator.ts
+├── request.validator.ts
+└── approval.validator.ts
+
+三、Database 目錄規劃
+
+database/
+├── schema/
+│   ├── 001_departments.sql
+│   ├── 002_users.sql
+│   ├── 003_roles.sql
+│   ├── 004_user_roles.sql
+│   ├── 005_manager_mapping.sql
+│   ├── 006_requests.sql
+│   ├── 007_approval_logs.sql
+│   ├── 008_notifications.sql
+│   └── 009_attachments.sql
+│
+├── seeds/
+│   ├── roles.seed.sql
+│   ├── departments.seed.sql
+│   └── demo_users.seed.sql
+│
+└── migrations/
+
+四、Docs 目錄規劃
+
+docs/
+├── architecture.md
+├── er-diagram.md
+├── api-spec.md
+├── state-machine.md
+├── wireframes.md
+└── deployment.md

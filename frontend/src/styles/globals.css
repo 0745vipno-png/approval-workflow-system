@@ -1,0 +1,32 @@
+/* 
+  這裡先放最簡單的全域樣式。
+  之後你如果導入 Tailwind，這份檔案可以再調整。
+*/
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #f8fafc;
+  color: #111827;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  padding: 8px 14px;
+}

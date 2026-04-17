@@ -1,0 +1,357 @@
+簽核系統狀態機規劃
+
+一、狀態機目標
+
+這套狀態機要解決四件事：
+
+限制合法流程
+不能從草稿直接變已核准
+控制角色操作
+只有主管能處理主管簽核階段
+定義轉換副作用
+送出後要指派主管、寫 log、發通知
+支援 GUI 顯示
+不同狀態顯示不同按鈕
+二、狀態機核心概念
+
+我建議把狀態拆成兩層理解：
+
+1. 業務狀態 status
+
+描述案件目前的精確狀態。
+
+2. 流程階段 current_step
+
+描述案件目前在流程哪一段。
+
+例如：
+
+status = RETURNED_BY_HR
+current_step = REQUESTER_REVISION
+
+這樣 GUI 顯示和後端控制都比較清楚。
+
+三、狀態定義
+
+建議正式採用這組狀態。
+
+| 狀態代碼                | 中文名稱  | 說明            | 是否終止 |
+| ------------------- | ----- | ------------- | ---- |
+| DRAFT               | 草稿    | 申請人建立但尚未送出    | 否    |
+| PENDING_MANAGER     | 待主管簽核 | 已送出，等主管處理     | 否    |
+| RETURNED_BY_MANAGER | 主管退回  | 主管要求補件        | 否    |
+| REJECTED_BY_MANAGER | 主管駁回  | 主管駁回，流程終止     | 是    |
+| PENDING_HR          | 待人資核定 | 主管已同意，等 HR 處理 | 否    |
+| RETURNED_BY_HR      | HR 退回 | HR 要求補件       | 否    |
+| REJECTED_BY_HR      | HR 駁回 | HR 駁回，流程終止    | 是    |
+| APPROVED            | 已核准   | 最終核定完成        | 是    |
+| CANCELLED           | 已撤回   | 申請人主動撤回       | 是    |
+
+四、流程階段定義
+
+這個欄位不是絕對必要，但很有幫助。
+
+| 階段代碼               | 中文名稱    | 對應情境          |
+| ------------------ | ------- | ------------- |
+| DRAFT_STEP         | 草稿階段    | 尚未送出          |
+| MANAGER_REVIEW     | 主管審核階段  | 等主管簽核         |
+| REQUESTER_REVISION | 申請人補件階段 | 被退回後修改        |
+| HR_REVIEW          | HR 核定階段 | 等 HR 處理       |
+| COMPLETED          | 完成階段    | 已核准 / 駁回 / 撤回 |
+
+
+五、狀態機事件定義
+
+狀態轉換不是自己發生的，而是由事件觸發。
+我建議你把事件也定義清楚。
+
+| 事件代碼               | 中文名稱  | 觸發角色      |
+| ------------------ | ----- | --------- |
+| SAVE_DRAFT         | 儲存草稿  | Requester |
+| SUBMIT             | 送出申請  | Requester |
+| DELETE_DRAFT       | 刪除草稿  | Requester |
+| WITHDRAW           | 撤回申請  | Requester |
+| RESUBMIT           | 重新送出  | Requester |
+| APPROVE_BY_MANAGER | 主管同意  | Manager   |
+| RETURN_BY_MANAGER  | 主管退回  | Manager   |
+| REJECT_BY_MANAGER  | 主管駁回  | Manager   |
+| APPROVE_BY_HR      | HR 同意 | HR        |
+| RETURN_BY_HR       | HR 退回 | HR        |
+| REJECT_BY_HR       | HR 駁回 | HR        |
+
+
+六、正式狀態機轉換表
+
+這張就是核心。
+
+| 目前狀態                | 事件                 | 觸發角色      | 下一狀態                | 流程階段               |
+| ------------------- | ------------------ | --------- | ------------------- | ------------------ |
+| DRAFT               | SAVE_DRAFT         | Requester | DRAFT               | DRAFT_STEP         |
+| DRAFT               | SUBMIT             | Requester | PENDING_MANAGER     | MANAGER_REVIEW     |
+| DRAFT               | DELETE_DRAFT       | Requester | 已刪除                 | -                  |
+| PENDING_MANAGER     | APPROVE_BY_MANAGER | Manager   | PENDING_HR          | HR_REVIEW          |
+| PENDING_MANAGER     | RETURN_BY_MANAGER  | Manager   | RETURNED_BY_MANAGER | REQUESTER_REVISION |
+| PENDING_MANAGER     | REJECT_BY_MANAGER  | Manager   | REJECTED_BY_MANAGER | COMPLETED          |
+| PENDING_MANAGER     | WITHDRAW           | Requester | CANCELLED           | COMPLETED          |
+| RETURNED_BY_MANAGER | SAVE_DRAFT         | Requester | RETURNED_BY_MANAGER | REQUESTER_REVISION |
+| RETURNED_BY_MANAGER | RESUBMIT           | Requester | PENDING_MANAGER     | MANAGER_REVIEW     |
+| RETURNED_BY_MANAGER | WITHDRAW           | Requester | CANCELLED           | COMPLETED          |
+| PENDING_HR          | APPROVE_BY_HR      | HR        | APPROVED            | COMPLETED          |
+| PENDING_HR          | RETURN_BY_HR       | HR        | RETURNED_BY_HR      | REQUESTER_REVISION |
+| PENDING_HR          | REJECT_BY_HR       | HR        | REJECTED_BY_HR      | COMPLETED          |
+| RETURNED_BY_HR      | SAVE_DRAFT         | Requester | RETURNED_BY_HR      | REQUESTER_REVISION |
+| RETURNED_BY_HR      | RESUBMIT           | Requester | PENDING_MANAGER     | MANAGER_REVIEW     |
+| RETURNED_BY_HR      | WITHDRAW           | Requester | CANCELLED           | COMPLETED          |
+
+七、狀態圖文字版
+
+DRAFT
+ ├─ SAVE_DRAFT → DRAFT
+ ├─ SUBMIT → PENDING_MANAGER
+ └─ DELETE_DRAFT → Deleted
+
+PENDING_MANAGER
+ ├─ APPROVE_BY_MANAGER → PENDING_HR
+ ├─ RETURN_BY_MANAGER → RETURNED_BY_MANAGER
+ ├─ REJECT_BY_MANAGER → REJECTED_BY_MANAGER
+ └─ WITHDRAW → CANCELLED
+
+RETURNED_BY_MANAGER
+ ├─ SAVE_DRAFT → RETURNED_BY_MANAGER
+ ├─ RESUBMIT → PENDING_MANAGER
+ └─ WITHDRAW → CANCELLED
+
+PENDING_HR
+ ├─ APPROVE_BY_HR → APPROVED
+ ├─ RETURN_BY_HR → RETURNED_BY_HR
+ └─ REJECT_BY_HR → REJECTED_BY_HR
+
+RETURNED_BY_HR
+ ├─ SAVE_DRAFT → RETURNED_BY_HR
+ ├─ RESUBMIT → PENDING_MANAGER
+ └─ WITHDRAW → CANCELLED
+ 
+ 八、每個狀態的進入條件與離開條件
+
+這部分類似實作規格，很重要。
+
+1. DRAFT
+
+進入方式
+
+新建申請單
+草稿儲存
+
+可執行動作
+
+編輯
+儲存草稿
+送出
+刪除
+
+離開條件
+
+使用者按下送出
+使用者刪除草稿
+2. PENDING_MANAGER
+
+進入方式
+
+草稿送出
+被主管退回後重新送出
+被 HR 退回後重新送出
+
+可執行動作
+
+主管同意
+主管退回
+主管駁回
+申請人撤回
+
+離開條件
+
+主管完成審核
+申請人撤回
+3. RETURNED_BY_MANAGER
+
+進入方式
+
+主管退回
+
+可執行動作
+
+編輯
+儲存
+重新送出
+撤回
+
+離開條件
+
+申請人重新送出
+申請人撤回
+4. PENDING_HR
+
+進入方式
+
+主管同意
+
+可執行動作
+
+HR 同意
+HR 退回
+HR 駁回
+
+離開條件
+
+HR 完成處理
+5. RETURNED_BY_HR
+
+進入方式
+
+HR 退回
+
+可執行動作
+
+編輯
+儲存
+重新送出
+撤回
+
+離開條件
+
+申請人重新送出
+申請人撤回
+6. 終止狀態
+
+包含：
+
+REJECTED_BY_MANAGER
+REJECTED_BY_HR
+APPROVED
+CANCELLED
+
+特性
+
+不可再修改
+不可再送出
+僅可查詢
+九、狀態機守衛條件（Guard Conditions）
+
+這一段是狀態機真正「穩不穩」的重點。
+
+SUBMIT
+
+只有在以下條件成立時可送出：
+
+申請人為本人
+必填欄位完整
+若有日期欄位，start_date <= end_date
+APPROVE_BY_MANAGER
+
+只有在以下條件成立時可執行：
+
+操作者具有 Manager 角色
+status == PENDING_MANAGER
+操作者等於 current_approver_id
+APPROVE_BY_HR
+
+只有在以下條件成立時可執行：
+
+操作者具有 HR 角色
+status == PENDING_HR
+操作者有權處理該案件
+WITHDRAW
+
+只有在以下條件成立時可執行：
+
+操作者為申請人本人
+狀態為 PENDING_MANAGER、RETURNED_BY_MANAGER、RETURNED_BY_HR
+若你要更嚴格，可限制主管尚未動作前才能撤回
+RESUBMIT
+
+只有在以下條件成立時可執行：
+
+操作者為申請人本人
+狀態為 RETURNED_BY_MANAGER 或 RETURNED_BY_HR
+十、狀態轉換副作用（Side Effects）
+
+狀態機不只是改 status，還要做一串事情。
+
+DRAFT -> PENDING_MANAGER
+
+副作用：
+
+設定 submitted_at
+查詢 manager_mapping
+設定 current_approver_id = manager_id
+新增 approval_logs
+新增通知給主管
+PENDING_MANAGER -> PENDING_HR
+
+副作用：
+
+記錄主管意見
+設定 current_approver_id = hr_user_id
+新增 approval_logs
+通知 HR
+PENDING_MANAGER -> RETURNED_BY_MANAGER
+
+副作用：
+
+寫入退回意見
+清空 current_approver_id
+新增 approval_logs
+通知申請人
+PENDING_HR -> APPROVED
+
+副作用：
+
+設定 approved_at
+清空 current_approver_id
+新增 approval_logs
+通知申請人
+任一狀態 -> CANCELLED
+
+副作用：
+
+設定 cancelled_at
+清空 current_approver_id
+新增 approval_logs
+
+十一、狀態機與 GUI 的關係
+
+這段會直接影響畫面按鈕。
+
+| 狀態                  | Requester 按鈕 | Manager 按鈕 | HR 按鈕    |
+| ------------------- | ------------ | ---------- | -------- |
+| DRAFT               | 儲存、送出、刪除     | 無          | 無        |
+| PENDING_MANAGER     | 查看、撤回        | 同意、退回、駁回   | 無        |
+| RETURNED_BY_MANAGER | 編輯、儲存、重送、撤回  | 查看         | 無        |
+| PENDING_HR          | 查看           | 查看         | 同意、退回、駁回 |
+| RETURNED_BY_HR      | 編輯、儲存、重送、撤回  | 查看         | 查看       |
+| APPROVED            | 查看           | 查看         | 查看       |
+| REJECTED_BY_MANAGER | 查看           | 查看         | 無        |
+| REJECTED_BY_HR      | 查看           | 查看         | 查看       |
+| CANCELLED           | 查看           | 無          | 無        |
+
+十三、簽核系統的狀態機設計原則
+
+原則 1
+
+單一案件任一時刻只能有一個主要狀態。
+
+原則 2
+
+狀態只能透過定義好的事件轉換。
+
+原則 3
+
+狀態轉換必須驗證角色、權限與目前狀態。
+
+原則 4
+
+每次轉換都必須留下歷程紀錄。
+
+原則 5
+
+終止狀態不可再進行編輯或簽核。

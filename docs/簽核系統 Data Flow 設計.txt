@@ -1,0 +1,325 @@
+簽核系統 Data Flow 設計
+
+一般來說，可以分成兩種層次來寫：
+
+DFD Level 0：整體資料流程
+DFD Level 1：拆成主要子流程
+
+一、Data Flow 的核心元素
+
+先定義這套系統裡有哪些元素。
+
+外部實體（External Entities）
+Requester
+Manager
+HR
+Admin
+處理程序（Processes）
+P1 使用者驗證
+P2 申請單管理
+P3 簽核流程處理
+P4 通知處理
+P5 系統管理
+資料儲存（Data Stores）
+D1 users
+D2 roles
+D3 user_roles
+D4 departments
+D5 manager_mapping
+D6 requests
+D7 approval_logs
+D8 notifications
+D9 attachments
+二、DFD Level 0（系統整體資料流程圖）
+
+這張是最外層視角，先讓人看懂整體怎麼流。
+
+[Requester] ─────┐
+[Manager]   ─────┼────→ (簽核系統) ─────→ [requests DB]
+[HR]        ─────┼────→              ─────→ [approval_logs DB]
+[Admin]     ─────┘                   ─────→ [users / roles / mapping DB]
+                                      ─────→ [notifications DB]
+									 
+正式版
+
+┌────────────┐
+│ Requester  │
+└─────┬──────┘
+      │ 送出申請 / 查詢進度
+      ▼
+┌──────────────────────┐
+│      Approval System │
+└──────────────────────┘
+      ▲         ▲
+      │         │ 待簽核 / 簽核結果
+┌─────┴──────┐  │
+│  Manager   │  │
+└────────────┘  │
+                │
+┌────────────┐  │
+│    HR      │──┘
+└────────────┘
+
+┌────────────┐
+│   Admin    │──→ 維護使用者/角色/主管關聯
+└────────────┘
+
+系統內部資料儲存：
+- users
+- roles
+- user_roles
+- departments
+- manager_mapping
+- requests
+- approval_logs
+- notifications
+
+三、DFD Level 1（主要子流程拆解）
+
+這層比較重要，它能對應後面的系統設計。
+
+P1 使用者驗證流程
+
+功能
+
+處理登入、角色載入、權限判斷。
+
+[User]
+  │ 輸入帳號密碼
+  ▼
+(P1 使用者驗證)
+  │ 讀取使用者資料
+  ├────→ [D1 users]
+  │ 讀取角色資料
+  ├────→ [D2 roles]
+  ├────→ [D3 user_roles]
+  │
+  ▼
+ 回傳登入結果 / 使用者角色資訊
+ 
+ 輸入
+email / employee_no
+password
+輸出
+登入成功 / 失敗
+使用者基本資訊
+角色清單
+
+P2 申請單管理流程
+
+功能
+
+處理建立申請、儲存草稿、送出申請、編輯退回案件。
+
+[Requester]
+  │ 填寫申請資料
+  ▼
+(P2 申請單管理)
+  │ 寫入 / 更新申請單
+  ├────→ [D6 requests]
+  │ 寫入附件
+  ├────→ [D9 attachments]
+  │ 寫入操作紀錄
+  ├────→ [D7 approval_logs]
+  │ 查詢主管
+  ├────→ [D5 manager_mapping]
+  ▼
+ 回傳申請單結果
+ 
+會發生的情境
+ 
+儲存草稿
+送出申請
+編輯退回案件
+重新送出
+重要資料流
+Requester 提交表單資料
+系統寫入 requests
+系統查詢主管
+系統更新 current_approver_id
+系統新增 approval_logs
+P3 簽核流程處理
+功能
+
+處理主管與 HR 的同意、退回、駁回。
+
+[Manager / HR]
+
+  │ 提交簽核動作
+  ▼
+(P3 簽核流程處理)
+  │ 讀取申請單
+  ├────→ [D6 requests]
+  │ 驗證狀態 / 權限
+  ├────→ [D1 users]
+  ├────→ [D3 user_roles]
+  │ 更新申請狀態
+  ├────→ [D6 requests]
+  │ 記錄簽核歷程
+  ├────→ [D7 approval_logs]
+  ▼
+ 回傳簽核結果
+ 
+典型資料流
+主管同意
+讀取 requests
+驗證 status = PENDING_MANAGER
+驗證簽核者是否為 current_approver_id
+更新狀態為 PENDING_HR
+指派 HR
+寫入 approval_logs
+HR 同意
+更新狀態為 APPROVED
+清空 current_approver_id
+寫入 approved_at
+寫入 approval_logs
+退回 / 駁回
+更新 status
+寫入簽核意見
+寫入 approval_logs
+P4 通知處理流程
+功能
+
+在送件、退回、駁回、核准時發送通知。
+
+(P2 / P3 觸發事件)
+  │
+  ▼
+(P4 通知處理)
+  │ 產生通知內容
+  ├────→ [D8 notifications]
+  ▼
+[Requester / Manager / HR]
+  收到通知
+  
+可能通知事件
+申請送出後通知 Manager
+主管同意後通知 HR
+主管退回 / 駁回後通知 Requester
+HR 決策後通知 Requester
+
+5 系統管理流程
+功能
+
+處理使用者、角色、主管關聯維護。
+
+[Admin]
+  │ 維護資料
+  ▼
+(P5 系統管理)
+  ├────→ [D1 users]
+  ├────→ [D2 roles]
+  ├────→ [D3 user_roles]
+  ├────→ [D4 departments]
+  └────→ [D5 manager_mapping]
+  
+  會做的事情
+  
+新增 / 編輯使用者
+指派角色
+維護部門
+維護主管對應
+
+四、最重要的三條主資料流
+
+這三條通常是老師最容易看懂，也最該放進報告的。
+
+1. 申請送出資料流
+
+Requester
+→ 填寫申請表單
+→ P2 申請單管理
+→ 寫入 requests
+→ 查詢 manager_mapping
+→ 設定 current_approver_id
+→ 寫入 approval_logs
+→ 觸發 P4 通知處理
+→ 通知 Manager
+
+對應資料表
+requests
+manager_mapping
+approval_logs
+notifications
+
+2. 主管簽核資料流
+
+Manager
+
+→ 開啟待簽核案件
+→ P3 簽核流程處理
+→ 讀取 requests
+→ 驗證 user_roles / current_approver_id
+→ 更新 requests.status
+→ 寫入 approval_logs
+→ 觸發 P4 通知處理
+→ 通知 HR 或 Requester
+
+對應資料表
+requests
+user_roles
+approval_logs
+notifications
+
+3. HR 最終核定資料流
+
+HR
+→ 開啟待核定案件
+→ P3 簽核流程處理
+→ 讀取 requests
+→ 驗證角色與狀態
+→ 更新 requests.status = APPROVED / RETURNED_BY_HR / REJECTED_BY_HR
+→ 寫入 approval_logs
+→ 觸發 P4 通知處理
+→ 通知 Requester
+
+五、DFD 文字版
+
+DFD Level 1 簡化文字版
+
+External Entities:
+- Requester
+- Manager
+- HR
+- Admin
+
+Processes:
+P1 User Authentication
+P2 Request Management
+P3 Approval Processing
+P4 Notification Processing
+P5 System Administration
+
+Data Stores:
+D1 users
+D2 roles
+D3 user_roles
+D4 departments
+D5 manager_mapping
+D6 requests
+D7 approval_logs
+D8 notifications
+D9 attachments
+
+六、Data Flow 邏輯重點
+
+設計說明
+
+1. requests 是主資料流核心
+
+所有申請狀態都圍繞 requests 這張表轉。
+
+2. approval_logs 是歷程流核心
+
+每次動作都必須記錄，才能做：
+
+進度追蹤
+歷程查詢
+稽核
+3. manager_mapping 決定流程流向
+
+申請送出後，系統不是隨機送件，而是透過主管對應表決定下一位處理者。
+
+4. notifications 是事件導向的延伸流
+
+通知不是主流程本身，但會被主流程觸發。

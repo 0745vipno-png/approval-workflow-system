@@ -1,0 +1,350 @@
+簽核系統 ER Diagram 設計
+
+申請人送件
+一級主管簽核
+HR 最終核定
+Admin 維護主管關聯與角色
+一、核心實體清單
+
+我建議目前先有這 8 個主要實體：
+
+users
+roles
+user_roles
+departments
+manager_mapping
+requests
+approval_logs
+notifications
+
+這樣已經足夠支撐你的 MVP 與大部分 GUI 功能。
+
+二、各實體設計
+1. users
+
+儲存系統使用者資料。
+
+| 欄位            | 型別       | 說明    |
+| ------------- | -------- | ----- |
+| user_id       | PK       | 使用者編號 |
+| name          | varchar  | 姓名    |
+| email         | varchar  | 登入帳號  |
+| password_hash | varchar  | 密碼雜湊  |
+| department_id | FK       | 所屬部門  |
+| status        | varchar  | 帳號狀態  |
+| created_at    | datetime | 建立時間  |
+| updated_at    | datetime | 更新時間  |
+
+說明
+
+一個使用者屬於一個部門
+
+一個使用者可以有多個角色
+
+2. roles
+
+儲存角色定義。
+
+| 欄位          | 型別      | 說明   |
+| ----------- | ------- | ---- |
+| role_id     | PK      | 角色編號 |
+| role_name   | varchar | 角色名稱 |
+| description | varchar | 角色說明 |
+
+
+範例資料
+Requester
+Manager
+HR
+Admin
+
+3. user_roles
+
+使用者與角色的對應表，多對多。
+
+| 欄位           | 型別       | 說明    |
+| ------------ | -------- | ----- |
+| user_role_id | PK       | 對應編號  |
+| user_id      | FK       | 使用者編號 |
+| role_id      | FK       | 角色編號  |
+| assigned_at  | datetime | 指派時間  |
+
+4. departments
+
+儲存部門資料。
+
+| 欄位              | 型別       | 說明   |
+| --------------- | -------- | ---- |
+| department_id   | PK       | 部門編號 |
+| department_name | varchar  | 部門名稱 |
+| status          | varchar  | 部門狀態 |
+| created_at      | datetime | 建立時間 |
+
+5. manager_mapping
+
+維護「誰是誰主管」的關聯。
+
+| 欄位              | 型別      | 說明         |
+| --------------- | ------- | ---------- |
+| mapping_id      | PK      | 關聯編號       |
+| employee_id     | FK      | 員工 user_id |
+| manager_id      | FK      | 主管 user_id |
+| effective_start | date    | 生效起日       |
+| effective_end   | date    | 生效迄日       |
+| status          | varchar | 關聯狀態       |
+
+說明
+
+一位員工對應一位直屬主管
+
+一位主管可管理多位員工
+
+6. requests
+
+申請單主表，是整個系統核心。
+
+| 欄位                  | 型別       | 說明     |
+| ------------------- | -------- | ------ |
+| request_id          | PK       | 申請單編號  |
+| applicant_id        | FK       | 申請人    |
+| request_type        | varchar  | 申請類型   |
+| title               | varchar  | 申請標題   |
+| content             | text     | 申請內容   |
+| start_date          | date     | 起始日期   |
+| end_date            | date     | 結束日期   |
+| status              | varchar  | 目前狀態   |
+| current_step        | varchar  | 當前流程步驟 |
+| current_approver_id | FK       | 當前簽核人  |
+| submitted_at        | datetime | 送出時間   |
+| approved_at         | datetime | 完成時間   |
+| cancelled_at        | datetime | 撤回時間   |
+| created_at          | datetime | 建立時間   |
+| updated_at          | datetime | 更新時間   |
+
+說明
+
+這張表要存：
+
+誰申請
+
+申請內容
+
+現在狀態
+
+現在輪到誰簽
+
+7. approval_logs
+
+簽核歷程表，用來記錄每一次狀態變化與操作。
+
+| 欄位          | 型別       | 說明    |
+| ----------- | -------- | ----- |
+| log_id      | PK       | 紀錄編號  |
+| request_id  | FK       | 申請單編號 |
+| action_by   | FK       | 操作人   |
+| action_role | varchar  | 操作角色  |
+| from_status | varchar  | 原狀態   |
+| to_status   | varchar  | 新狀態   |
+| action_type | varchar  | 動作類型  |
+| comment     | text     | 簽核意見  |
+| action_time | datetime | 操作時間  |
+
+action_type 範例
+submit
+approve
+return
+reject
+cancel
+resubmit
+說明
+
+這張表非常重要，因為：
+
+簽核系統一定要可追蹤
+
+GUI 的簽核歷程時間軸會用到它
+
+報表與稽核也會用到它
+
+8. notifications
+
+通知資料表。
+
+| 欄位              | 型別       | 說明    |
+| --------------- | -------- | ----- |
+| notification_id | PK       | 通知編號  |
+| user_id         | FK       | 接收通知者 |
+| request_id      | FK       | 關聯申請單 |
+| title           | varchar  | 通知標題  |
+| message         | text     | 通知內容  |
+| is_read         | boolean  | 是否已讀  |
+| created_at      | datetime | 建立時間  |
+
+
+三、實體關係整理
+
+主要關係
+
+departments 1 ── N users
+
+users N ── N roles，透過 user_roles
+
+users 1 ── N requests
+
+一位申請人可以有多張申請單
+
+users 1 ── N approval_logs
+
+一位使用者可執行多次簽核操作
+
+requests 1 ── N approval_logs
+
+一張申請單會有多筆簽核紀錄
+
+users 1 ── N notifications
+
+requests 1 ── N notifications
+
+users 1 ── N manager_mapping（作為主管）
+
+users 1 ── 1 或 N manager_mapping（作為員工，視規則而定）
+
+四、比較正式的 ER Diagram 表示
+[departments]
+- department_id (PK)
+- department_name
+- status
+- created_at
+
+[users]
+- user_id (PK)
+- name
+- email
+- password_hash
+- department_id (FK)
+- status
+- created_at
+- updated_at
+
+[roles]
+- role_id (PK)
+- role_name
+- description
+
+[user_roles]
+- user_role_id (PK)
+- user_id (FK)
+- role_id (FK)
+- assigned_at
+
+[manager_mapping]
+- mapping_id (PK)
+- employee_id (FK -> users.user_id)
+- manager_id (FK -> users.user_id)
+- effective_start
+- effective_end
+- status
+
+[requests]
+- request_id (PK)
+- applicant_id (FK -> users.user_id)
+- request_type
+- title
+- content
+- start_date
+- end_date
+- status
+- current_step
+- current_approver_id (FK -> users.user_id)
+- submitted_at
+- approved_at
+- cancelled_at
+- created_at
+- updated_at
+
+[approval_logs]
+- log_id (PK)
+- request_id (FK -> requests.request_id)
+- action_by (FK -> users.user_id)
+- action_role
+- from_status
+- to_status
+- action_type
+- comment
+- action_time
+
+[notifications]
+- notification_id (PK)
+- user_id (FK -> users.user_id)
+- request_id (FK -> requests.request_id)
+- title
+- message
+- is_read
+- created_at
+
+五、如果要畫成 crow’s foot，關係可以這樣寫
+
+| 左實體             | 關係  | 右實體            | 說明           |
+| --------------- | --- | -------------- | ------------ |
+| departments     | 1:N | users          | 一個部門有多位使用者   |
+| users           | N:M | roles          | 使用者可有多角色     |
+| users           | 1:N | requests       | 一位申請人有多張申請單  |
+| requests        | 1:N | approval_logs  | 一張申請單有多筆簽核紀錄 |
+| users           | 1:N | approval_logs  | 一位使用者可執行多次簽核 |
+| users           | 1:N | notifications  | 一位使用者有多則通知   |
+| requests        | 1:N | notifications  | 一張申請單可觸發多則通知 |
+| users(employee) | N:1 | users(manager) | 多位員工對應一位主管   |
+
+
+六、建議 requests 表保留的核心欄位
+
+這幾個欄位真的很重要，盡量不要省掉：
+
+status
+current_step
+current_approver_id
+submitted_at
+created_at
+updated_at
+原因
+
+因為這些欄位會直接影響：
+
+待簽核列表怎麼查
+
+當前該誰簽怎麼判斷
+
+GUI 顯示哪個狀態
+
+可執行哪些按鈕
+
+七、ER設計的邏輯重點
+
+1. 角色獨立化
+
+不要把角色直接寫死在 users 表裡。
+用 roles + user_roles 才能支援一人多角色。
+
+2. 主管關聯獨立化
+
+不要把 manager_id 直接硬寫在 users 表。
+獨立成 manager_mapping 會比較彈性，也方便未來調整歷史資料。
+
+3. 簽核紀錄獨立化
+
+不要只在 requests 表上存最後結果。
+一定要有 approval_logs，不然無法看完整歷程。
+
+4. 通知獨立化
+
+通知最好獨立，不要直接混在 requests 或 logs 裡。'
+
+
+
+本系統之資料模型以 requests 為核心，搭配 approval_logs 記錄簽核歷程，並以 users、roles、
+
+user_roles 管理系統使用者及其角色權限。manager_mapping 用於維護員工與主管的對應關係，以支援
+
+簽核流程自動指派；departments 用於管理組織單位資料；notifications 則負責提供案件相關通知。
+
+整體 ER 結構可支援申請建立、簽核流轉、狀態追蹤、歷程查詢與權限控管等核心需求。

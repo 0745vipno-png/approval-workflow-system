@@ -1,0 +1,200 @@
+一、建議使用的狀態清單
+
+我先用一版比較實用、又不會太複雜的狀態命名：
+
+| 狀態代碼                | 狀態名稱    | 說明             |
+| ------------------- | ------- | -------------- |
+| DRAFT               | 草稿      | 申請人建立但尚未送出     |
+| PENDING_MANAGER     | 待主管簽核   | 已送出，等待一級主管處理   |
+| RETURNED_BY_MANAGER | 主管退回    | 被主管退回補件        |
+| REJECTED_BY_MANAGER | 主管駁回    | 被主管駁回，流程終止     |
+| PENDING_HR          | 待 HR 核定 | 主管已同意，等待 HR 處理 |
+| RETURNED_BY_HR      | HR 退回   | 被 HR 退回補件      |
+| REJECTED_BY_HR      | HR 駁回   | 被 HR 駁回，流程終止   |
+| APPROVED            | 已核准     | HR 最終同意，流程完成   |
+| CANCELLED           | 已撤回     | 申請人撤回，流程終止     |
+
+這組命名的好處是：
+
+一看就知道是誰退回、誰駁回
+後端判斷清楚
+簽核歷程也比較好看
+
+二、狀態轉換總表
+
+| 目前狀態                | 可執行角色     | 可執行動作 | 轉換後狀態               | 備註           |
+| ------------------- | --------- | ----- | ------------------- | ------------ |
+| DRAFT               | Requester | 儲存草稿  | DRAFT               | 可重複編輯        |
+| DRAFT               | Requester | 送出申請  | PENDING_MANAGER     | 正式送件         |
+| DRAFT               | Requester | 刪除草稿  | -                   | 資料可直接刪除或標記刪除 |
+| PENDING_MANAGER     | Manager   | 同意    | PENDING_HR          | 進入 HR 流程     |
+| PENDING_MANAGER     | Manager   | 退回    | RETURNED_BY_MANAGER | 回申請人修改       |
+| PENDING_MANAGER     | Manager   | 駁回    | REJECTED_BY_MANAGER | 流程終止         |
+| PENDING_MANAGER     | Requester | 撤回    | CANCELLED           | 僅限主管尚未處理前    |
+| RETURNED_BY_MANAGER | Requester | 編輯申請  | RETURNED_BY_MANAGER | 修改中          |
+| RETURNED_BY_MANAGER | Requester | 重新送出  | PENDING_MANAGER     | 再送主管         |
+| RETURNED_BY_MANAGER | Requester | 撤回    | CANCELLED           | 可選規則         |
+| PENDING_HR          | HR        | 同意    | APPROVED            | 流程完成         |
+| PENDING_HR          | HR        | 退回    | RETURNED_BY_HR      | 回申請人修改       |
+| PENDING_HR          | HR        | 駁回    | REJECTED_BY_HR      | 流程終止         |
+| RETURNED_BY_HR      | Requester | 編輯申請  | RETURNED_BY_HR      | 修改中          |
+| RETURNED_BY_HR      | Requester | 重新送出  | PENDING_MANAGER     | 建議重新走主管流程    |
+| RETURNED_BY_HR      | Requester | 撤回    | CANCELLED           | 可選規則         |
+| REJECTED_BY_MANAGER | -         | 無     | -                   | 終止狀態         |
+| REJECTED_BY_HR      | -         | 無     | -                   | 終止狀態         |
+| APPROVED            | -         | 無     | -                   | 完成狀態         |
+| CANCELLED           | -         | 無     | -                   | 終止狀態         |
+
+
+三、用狀態分階段看
+
+這樣比較容易理解整體邏輯。
+
+1. 建立階段
+
+| 狀態    | 可用動作 | 下一狀態            |
+| ----- | ---- | --------------- |
+| DRAFT | 儲存草稿 | DRAFT           |
+| DRAFT | 送出申請 | PENDING_MANAGER |
+| DRAFT | 刪除草稿 | 結束              |
+
+2. 主管簽核階段
+
+| 狀態              | 可用動作    | 下一狀態                |
+| --------------- | ------- | ------------------- |
+| PENDING_MANAGER | 同意      | PENDING_HR          |
+| PENDING_MANAGER | 退回      | RETURNED_BY_MANAGER |
+| PENDING_MANAGER | 駁回      | REJECTED_BY_MANAGER |
+| PENDING_MANAGER | 撤回（申請人） | CANCELLED           |
+
+這一階段最重要的是：
+
+主管只能處理屬於自己部屬的案件
+申請人只能在主管尚未處理前撤回
+
+3. 補件階段（主管退回）
+
+| 狀態                  | 可用動作 | 下一狀態                |
+| ------------------- | ---- | ------------------- |
+| RETURNED_BY_MANAGER | 編輯   | RETURNED_BY_MANAGER |
+| RETURNED_BY_MANAGER | 重新送出 | PENDING_MANAGER     |
+| RETURNED_BY_MANAGER | 撤回   | CANCELLED           |
+
+4. HR 核定階段
+
+| 狀態         | 可用動作 | 下一狀態           |
+| ---------- | ---- | -------------- |
+| PENDING_HR | 同意   | APPROVED       |
+| PENDING_HR | 退回   | RETURNED_BY_HR |
+| PENDING_HR | 駁回   | REJECTED_BY_HR |
+
+5. 補件階段（HR 退回）
+
+| 狀態             | 可用動作 | 下一狀態            |
+| -------------- | ---- | --------------- |
+| RETURNED_BY_HR | 編輯   | RETURNED_BY_HR  |
+| RETURNED_BY_HR | 重新送出 | PENDING_MANAGER |
+
+HR 退回後，申請人修改完成要重新從主管開始送
+
+6. 終止 / 完成階段
+
+| 狀態                  | 說明       |
+| ------------------- | -------- |
+| REJECTED_BY_MANAGER | 主管駁回，結案  |
+| REJECTED_BY_HR      | HR 駁回，結案 |
+| APPROVED            | HR 核准完成  |
+| CANCELLED           | 申請人主動撤回  |
+
+
+四、狀態轉換圖
+
+DRAFT
+ ├─ 儲存草稿 → DRAFT
+ ├─ 送出申請 → PENDING_MANAGER
+ └─ 刪除草稿 → 結束
+
+PENDING_MANAGER
+ ├─ 主管同意 → PENDING_HR
+ ├─ 主管退回 → RETURNED_BY_MANAGER
+ ├─ 主管駁回 → REJECTED_BY_MANAGER
+ └─ 申請人撤回 → CANCELLED
+
+RETURNED_BY_MANAGER
+ ├─ 編輯 → RETURNED_BY_MANAGER
+ ├─ 重新送出 → PENDING_MANAGER
+ └─ 撤回 → CANCELLED
+
+PENDING_HR
+ ├─ HR 同意 → APPROVED
+ ├─ HR 退回 → RETURNED_BY_HR
+ └─ HR 駁回 → REJECTED_BY_HR
+
+RETURNED_BY_HR
+ ├─ 編輯 → RETURNED_BY_HR
+ ├─ 重新送出 → PENDING_MANAGER
+ └─ 撤回 → CANCELLED
+ 
+ 五、每個狀態對應的 GUI 操作
+ 
+ | 狀態                  | Requester 可見按鈕 | Manager 可見按鈕 | HR 可見按鈕  |
+| ------------------- | -------------- | ------------ | -------- |
+| DRAFT               | 編輯、刪除、送出       | 無            | 無        |
+| PENDING_MANAGER     | 查看、撤回          | 同意、退回、駁回     | 無        |
+| RETURNED_BY_MANAGER | 編輯、重新送出、撤回     | 查看           | 無        |
+| PENDING_HR          | 查看             | 查看           | 同意、退回、駁回 |
+| RETURNED_BY_HR      | 編輯、重新送出、撤回     | 查看           | 查看       |
+| REJECTED_BY_MANAGER | 查看             | 查看           | 無        |
+| REJECTED_BY_HR      | 查看             | 查看           | 查看       |
+| APPROVED            | 查看             | 查看           | 查看       |
+| CANCELLED           | 查看             | 無            | 無        |
+
+六、後端驗證邏輯建議
+
+狀態轉換表不能只放在文件裡，實作時一定要寫成規則。
+
+例如：
+
+主管同意
+
+條件：
+
+角色必須是 Manager
+狀態必須是 PENDING_MANAGER
+該主管必須是案件當前簽核人
+HR 同意
+
+條件：
+
+角色必須是 HR
+狀態必須是 PENDING_HR
+申請人重送
+
+條件：
+
+角色必須是 Requester
+狀態必須是 RETURNED_BY_MANAGER 或 RETURNED_BY_HR
+申請人必須是案件本人
+七、這張表延伸到資料表會需要哪些欄位
+
+之後設計資料表時，至少會需要：
+
+requests
+id
+applicant_id
+status
+current_approver_id
+current_step
+submitted_at
+approved_at
+cancelled_at
+approval_logs
+id
+request_id
+action_by
+action_role
+from_status
+to_status
+action_type
+comment
+action_time

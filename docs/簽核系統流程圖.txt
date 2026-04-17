@@ -1,0 +1,212 @@
+一、主要流程（標準簽核流程）
+開始
+↓
+申請人登入系統
+↓
+建立申請單
+↓
+儲存草稿 或 送出申請
+↓
+【是否送出？】
+├─ 否 → 保持草稿 → 結束
+└─ 是
+     ↓
+送交一級主管
+     ↓
+主管審核
+     ↓
+【主管決策】
+├─ 同意 → 送交 HR
+├─ 退回 → 回到申請人修改
+└─ 駁回 → 流程結束（Rejected）
+     
+送交 HR
+↓
+HR 審核
+↓
+【HR 決策】
+├─ 同意 → 流程完成（Approved）
+├─ 退回 → 回到申請人修改
+└─ 駁回 → 流程結束（Rejected）
+
+結束
+二、正式版（角色分泳道流程圖）
+
+┌────────────┬────────────┬────────────┬────────────┐
+│ Requester  │ Manager    │ HR         │ System     │
+├────────────┼────────────┼────────────┼────────────┤
+│ 建立申請單 │            │            │            │
+│ 送出申請   │            │            │ 建立案件   │
+│──────────▶│            │            │            │
+│            │ 收到待簽核 │            │            │
+│            │ 審核案件   │            │            │
+│            │──────────▶│            │ 更新狀態   │
+│            │ 同意       │            │            │
+│            │            │ 收到待核定 │            │
+│            │            │ 審核案件   │            │
+│            │            │ 同意       │            │
+│            │            │──────────▶│ 更新完成   │
+│ 查看結果   │            │            │            │
+└────────────┴────────────┴────────────┴────────────┘
+三、主管退回流程
+主管審核
+↓
+選擇退回
+↓
+填寫退回原因
+↓
+系統狀態改為 Returned
+↓
+通知申請人
+↓
+申請人修改內容
+↓
+重新送出
+↓
+再次送主管審核
+四、主管駁回流程
+主管審核
+↓
+選擇駁回
+↓
+填寫原因
+↓
+狀態改為 Rejected
+↓
+通知申請人
+↓
+流程結束
+五、HR 退回流程
+HR 審核
+↓
+退回補件
+↓
+通知申請人
+↓
+申請人修改
+↓
+重新送出
+↓
+重新從主管開始 或 直接回 HR
+六、你要先決定的重要規則（很關鍵）
+
+這些規則會影響流程圖與程式邏輯。
+
+規則 1：HR 退回後要回哪裡？
+方案 A：回主管重簽
+Requester → Manager → HR → Returned
+Requester 修改後
+→ Manager → HR
+方案 B：直接回 HR
+Requester → Manager → HR → Returned
+Requester 修改後
+→ HR
+
+規則 2：申請人可否撤回？
+
+情境： 申請人剛按下「撤回」，結果同時主管也按下了「同意」
+
+開發防護： 撤回 API 必須使用 DB Transaction。在更新狀態為 Cancelled 前，必須先 SELECT ... FOR UPDATE 檢查 status 是否依然是 Pending。如果狀態已經變成了 Pending_HR，就要報錯告訴申請人：「主管已簽核，無法撤回」。
+
+例如主管尚未看時：
+
+Pending → Cancelled
+
+建議允許，但要限制條件。
+
+規則 3：主管多久沒簽要提醒？
+
+例如：
+
+超過 3 天寄通知
+Dashboard 顯示逾期件數
+七、對應狀態流程圖（State Flow）
+
+這張很重要，後端一定會用到。
+
+Draft
+↓
+Pending
+↓
+Manager Approved
+↓
+HR Review
+↓
+Approved
+
+例外流程：
+
+Pending → Returned
+Pending → Rejected
+Pending → Cancelled
+Returned → Pending
+八、畫面流程（GUI Navigation Flow）
+Requester
+登入
+↓
+Dashboard
+↓
+我的申請
+├─ 新增申請
+├─ 查看詳情
+└─ 查看進度
+Manager
+登入
+↓
+Dashboard
+↓
+待簽核清單
+↓
+簽核詳情頁
+↓
+同意 / 退回 / 駁回
+HR
+登入
+↓
+Dashboard
+↓
+待核定清單
+↓
+審核頁
+↓
+最終決策
+Admin
+登入
+↓
+Dashboard
+├─ 使用者管理
+├─ 部門管理
+├─ 主管設定
+└─ 系統紀錄
+九、系統事件流程（給後端很有用）
+送出申請
+Create Request
+status = Pending
+current_step = Manager
+create approval log
+send notification
+主管同意
+update step1 = approved
+status = HR Pending
+current_step = HR
+send notification
+HR 同意
+update final step = approved
+status = Approved
+completed_at = now
+send notification
+
+十、建議報告裡一定放這三張圖
+
+必放圖表
+
+1. 主流程圖
+
+從申請到完成。
+
+2. 退回 / 駁回分支圖
+
+例外流程。
+
+3. 狀態轉換圖
+

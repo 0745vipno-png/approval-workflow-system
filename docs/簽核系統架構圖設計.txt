@@ -1,0 +1,299 @@
+本系統之資料流程以申請單為核心。申請人建立與送出申請後，系統先寫入申請主資料
+
+再依主管關聯設定決定簽核流向，並同步產生簽核紀錄與通知；主管或 HR 進行簽核時，系統會先驗證角色與目前狀態，
+
+再更新申請狀態、記錄簽核歷程，最後發送對應通知。系統管理員則負責維護使用者、角色、部門與主管關聯等基礎資料，以支援整體簽核流程正常運作。
+
+┌──────────────────────────────────────┐
+│              Client / User           │
+│ Requester / Manager / HR / Admin     │
+└──────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────┐
+│              GUI Frontend            │
+│  Login / Dashboard / Form / Approval │
+│  Query / Notification / Admin Pages  │
+└──────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────┐
+│               Backend API            │
+│   Auth API / Request API / Approval  │
+│   User API / Role API / Query API    │
+└──────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────┐
+│          Business Logic Layer        │
+│ Authentication / Authorization       │
+│ Request Management                   │
+│ Approval Workflow Engine             │
+│ Status Transition Control            │
+│ Notification Service                 │
+│ Organization Mapping                 │
+└──────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────┐
+│             Database Layer           │
+│ users / roles / user_roles           │
+│ departments / manager_mapping        │
+│ requests / approval_logs             │
+│ notifications                        │
+└──────────────────────────────────────┘
+
+二、分層說明
+1. 表示層（Presentation Layer）
+
+這層就是你的 GUI。
+
+包含頁面
+登入頁
+Dashboard
+我的申請
+新增申請
+申請詳情
+待簽核清單
+簽核詳情
+使用者管理
+主管關聯設定
+主要責任
+顯示資料
+接收使用者操作
+根據角色顯示不同頁面
+根據狀態顯示不同按鈕
+你可以理解成
+
+這層只負責「看得到、按得到」，
+不負責真正決定能不能做。
+
+2. API 層（Controller / API Layer）
+
+這層負責接收前端請求，轉交給後端邏輯。
+
+可能的 API 分類
+Auth API
+Request API
+Approval API
+User API
+Admin API
+Notification API
+主要責任
+接收 HTTP Request
+驗證參數格式
+呼叫服務層
+回傳結果給前端
+
+例如：
+
+/api/login
+/api/requests
+/api/approvals
+/api/users
+/api/admin/manager-mapping
+3. 業務邏輯層（Business Logic Layer）
+
+這層是簽核系統真正的核心。
+
+A. Authentication 模組
+
+負責：
+
+登入驗證
+密碼檢查
+Session / Token 管理
+B. Authorization 模組
+
+負責：
+
+判斷角色
+判斷是否可看某頁
+判斷是否可執行某操作
+
+例如：
+
+Requester 不能簽核
+Manager 只能簽自己的部屬案件
+HR 才能最終核定
+C. Request Management 模組
+
+負責：
+
+建立申請單
+儲存草稿
+編輯退回案件
+查詢申請單
+撤回案件
+D. Approval Workflow 模組
+
+這個是重點模組。
+
+負責：
+
+決定案件送到哪一關
+決定目前簽核人是誰
+主管同意後送 HR
+退回後回申請人
+駁回後終止流程
+E. Status Transition Control 模組
+
+負責：
+
+驗證狀態是否合法轉換
+防止非法操作
+
+例如：
+
+DRAFT -> PENDING_MANAGER 可以
+PENDING_MANAGER -> APPROVED 不可以
+APPROVED -> EDITING 不可以
+F. Notification Service 模組
+
+負責：
+
+案件送出通知
+待簽核通知
+退回通知
+駁回通知
+核准通知
+G. Organization Mapping 模組
+
+負責：
+
+查詢員工的主管是誰
+查詢誰具有 HR 身分
+查詢使用者部門資訊
+
+這塊對你的系統很重要，因為流程流向靠它決定。
+
+4. 資料層（Database Layer）
+
+這層負責存放所有資料。
+
+主要資料表
+users
+roles
+user_roles
+departments
+manager_mapping
+requests
+approval_logs
+notifications
+
+模組式架構圖
+
+┌─────────────────────────────────────────────┐
+│                 Frontend GUI                │
+│---------------------------------------------│
+│ Login │ Dashboard │ Request Form │ Approval │
+│ Query │ Notification │ Admin Management     │
+└─────────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│                 Backend Server              │
+│---------------------------------------------│
+│ Auth Controller                             │
+│ Request Controller                          │
+│ Approval Controller                         │
+│ Admin Controller                            │
+│ Notification Controller                     │
+└─────────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│               Service Layer                 │
+│---------------------------------------------│
+│ Auth Service                                │
+│ Role Permission Service                     │
+│ Request Service                             │
+│ Approval Service                            │
+│ Workflow Service                            │
+│ Notification Service                        │
+│ Organization Service                        │
+└─────────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│               Persistence Layer             │
+│---------------------------------------------│
+│ User Repository                             │
+│ Request Repository                          │
+│ Approval Log Repository                     │
+│ Department Repository                       │
+│ Manager Mapping Repository                  │
+│ Notification Repository                     │
+└─────────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│                  Database                   │
+└─────────────────────────────────────────────┘
+
+四、你這個簽核系統的核心資料流
+
+這段也很適合搭配架構圖一起講。
+
+1. 申請人送出申請
+Requester
+→ Frontend Form Page
+→ Request API
+→ Request Service
+→ Workflow Service
+→ Database 寫入 requests
+→ Notification Service 通知 Manager
+2. 主管同意案件
+Manager
+→ Approval Page
+→ Approval API
+→ Approval Service
+→ Status Transition 檢查
+→ Workflow Service 指派下一關 HR
+→ approval_logs 寫入紀錄
+→ Notification Service 通知 HR
+3. HR 最終核定
+HR
+→ Approval Page
+→ Approval API
+→ Approval Service
+→ Status Transition 檢查
+→ 更新 requests.status = APPROVED
+→ approval_logs 寫入紀錄
+→ Notification Service 通知 Requester
+五、如果你要做成 MVC 概念，也可以這樣表達
+
+如果老師或報告偏好 MVC，你可以這樣寫：
+
+Model
+User
+Role
+Department
+Request
+ApprovalLog
+Notification
+ManagerMapping
+View
+Login Page
+Dashboard
+Request Form Page
+Approval Detail Page
+Admin Management Page
+Controller
+AuthController
+RequestController
+ApprovalController
+AdminController
+NotificationController
+
+七、如果要更貼近 GUI 專案，前後端對照
+
+| 前端頁面    | 對應後端模組                      | 對應資料表                   |
+| ------- | --------------------------- | ----------------------- |
+| 登入頁     | Auth Service                | users                   |
+| 我的申請    | Request Service             | requests                |
+| 新增申請頁   | Request Service             | requests                |
+| 待簽核頁    | Approval Service            | requests, approval_logs |
+| 簽核詳情頁   | Approval + Workflow Service | requests, approval_logs |
+| 使用者管理頁  | Admin Service               | users, user_roles       |
+| 主管關聯設定頁 | Organization Service        | manager_mapping         |
