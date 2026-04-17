@@ -4,7 +4,6 @@ import fs from "fs";
 
 const uploadDir = path.resolve(process.cwd(), "uploads");
 
-// 稽核點：確保資料夾存在
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
