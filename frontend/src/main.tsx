@@ -13,7 +13,7 @@ import "./styles/globals.css";
  * - 把 React App 掛到 index.html 裡面的 <div id="root"></div>
  *
  * <React.StrictMode>：
- * - 開發模式下幫你檢查一些潛在問題
+ * - 開發模式下檢查一些潛在問題
  * - 有時候某些邏輯會在開發模式執行兩次，這是正常的
  */
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
