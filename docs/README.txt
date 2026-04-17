@@ -1,124 +1,198 @@
 # Approval Workflow System
 
-A full-stack approval workflow platform for internal business processes such as leave requests, reimbursements, overtime requests, and multi-role approvals.
+A modern full-stack internal approval platform for managing leave requests, reimbursements, overtime applications, and multi-stage approval processes.
 
-## Overview
+Built with a modular frontend/backend architecture and designed for real business workflows.
 
-This project is designed to streamline internal approval operations by providing a structured workflow for employees, managers, HR, and administrators.
+---
 
-It includes:
+# Features
 
-* Request creation and submission
-* Request tracking and status management
-* Manager approval actions (approve / return / reject)
-* HR final review workflow
-* Role-based dashboards
-* Administrative management pages
-* Frontend and backend integration
+## Core Workflow
 
-## Tech Stack
+- Create approval requests
+- Save draft requests
+- Edit returned requests
+- Submit requests into workflow
+- View request history
+- Track request status
+- View approval timeline
+- Upload attachments
 
-### Frontend
-
-* React
-* TypeScript
-* Vite
-* React Router
-* Zustand
-* TanStack Query
-
-### Backend
-
-* Node.js
-* REST API architecture
-* Database integration (customizable)
-
-## Roles
+## Multi-Role Approval Process
 
 ### Requester
-
-* Create requests
-* Edit drafts or returned requests
-* View request history
-* Track approval progress
+- Create and manage requests
+- Edit drafts / returned items
+- Track progress
+- Review own history
 
 ### Manager
-
-* Review pending requests
-* Approve, return, or reject requests
-* View request details and timeline
+- Review pending requests
+- Approve requests
+- Return requests for revision
+- Reject requests
+- View request details
 
 ### HR
-
-* Final review and approval
-* Handle HR pending items
-* Review approval history
+- Final review process
+- Approve / reject requests
+- Handle HR queue
+- Review completed cases
 
 ### Admin
+- Dashboard overview
+- User management
+- Department management
+- Role assignment
+- Manager mapping
+- System data administration
 
-* User management
-* Department management
-* Role assignment
-* Manager mapping
+---
 
-## Project Structure
+# Latest Project Status
+
+## Completed Modules
+
+### Frontend
+- Login page
+- Role-based routing
+- Request pages
+- Manager pages
+- HR pages
+- Admin pages
+- i18n language switch (Chinese / English)
+- Responsive UI components
+- Global state management
+
+### Backend
+- RESTful API structure
+- Modular route/controller/service architecture
+- Authentication API
+- Request APIs
+- Admin APIs
+- Clean folder organization
+
+### Admin APIs Completed
+- `/api/admin/dashboard`
+- `/api/admin/users`
+- `/api/admin/departments`
+- `/api/admin/manager-mappings`
+
+---
+
+# Tech Stack
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- React Router
+- Zustand
+- TanStack Query
+
+## Backend
+
+- Node.js
+- Express
+- TypeScript
+- REST API
+
+## Next Phase
+
+- Database persistence layer
+- Prisma ORM / SQL integration
+- JWT authentication
+- Toast notifications
+- Validation improvements
+
+---
+
+# System Roles
+
+| Role | Description |
+|------|------------|
+| Requester | Submit and track requests |
+| Manager | First-stage approver |
+| HR | Final reviewer |
+| Admin | System administrator |
+
+---
+
+# Project Structure
+
+## Frontend
 
 ```text
-src/
-├─ components/
-├─ pages/
-├─ layouts/
-├─ routes/
-├─ store/
-├─ constants/
-├─ types/
-├─ lib/
-└─ styles/
-```
+frontend/src
+├─ components
+├─ pages
+├─ routes
+├─ layouts
+├─ store
+├─ constants
+├─ lib
+├─ types
+└─ styles
 
-## Getting Started
+Backend
 
-### Install dependencies
+backend/src
+├─ controllers
+├─ routes
+├─ modules
+│  └─ admin
+│     ├─ users
+│     ├─ departments
+│     ├─ manager-mappings
+│     └─ dashboard
+├─ services
+├─ repositories
+└─ utils
 
-```bash
+Getting Started
+
+Install Dependencies
+
 npm install
-```
 
-### Run frontend
+Run Frontend
 
-```bash
 npm run dev
-```
 
-### Build production version
+Run Backend
 
-```bash
-npm run build
-```
+npm run dev
 
-## License
+Demo Accounts
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+requester / 1234
+manager   / 1234
+hr        / 1234
+admin     / 1234
 
-### Why AGPL-3.0?
+Roadmap
+In Progress
+Database migration
+Persistent data storage
+Planned
+JWT auth
+Audit logs
+Export reports
+Notification system
+Better UI feedback
+Deployment
+License
 
-AGPL-3.0 is a strong copyleft license designed to protect open-source software, including software used over a network.
+Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)
 
-This means:
+This ensures improvements and hosted modifications remain open source.
 
-* If someone modifies this project and distributes it, they must also release the source code.
-* If someone runs a modified version as a web service, they must provide the modified source code to users of that service.
-* Derivative works must remain under the same AGPL-3.0 license.
-* The original copyright and license notices must be preserved.
+Contributing
 
-### Why choose it for this project?
+Issues, pull requests, and suggestions are welcome.
 
-This helps prevent closed-source forks of the system while ensuring improvements remain available to the community.
+Disclaimer
 
-## Contributing
-
-Pull requests, issues, and suggestions are welcome.
-
-## Disclaimer
-
-This project is provided "as is", without warranty of any kind.
+This project is provided as is, without warranty of any kind.
