@@ -4,7 +4,7 @@ import fs from "fs";
 
 const uploadDir = path.resolve(process.cwd(), "uploads");
 
-// 稽核點：確保資料夾存在（這段寫得很好，保留）
+// 稽核點：確保資料夾存在
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -25,7 +25,6 @@ const storage = multer.diskStorage({
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
-    // 稽核點：除了空格，也把非英數中文字元過濾掉，避免檔名編碼問題
     const baseName = path.basename(file.originalname, ext).replace(/[^\w\u4e00-\u9fa5]/g, "-");
     const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${baseName}${ext}`;
     cb(null, uniqueName);
