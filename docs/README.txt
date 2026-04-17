@@ -211,13 +211,11 @@ source code available to your users.
 This ensures that any improvements made to this Approval System remain 
 open-source for the community.
 
-
 ==================================================
 CONTRIBUTING
 ==================================================
 
 Issues, pull requests, and suggestions are welcome.
-
 
 ==================================================
 DISCLAIMER
