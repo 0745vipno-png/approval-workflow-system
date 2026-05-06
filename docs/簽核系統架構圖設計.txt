@@ -259,9 +259,9 @@ HR
 → 更新 requests.status = APPROVED
 → approval_logs 寫入紀錄
 → Notification Service 通知 Requester
-五、如果你要做成 MVC 概念，也可以這樣表達
+五、如果要做成 MVC 概念，也可以這樣表達
 
-如果老師或報告偏好 MVC，你可以這樣寫：
+如果老師或報告偏好 MVC，也可以這樣寫：
 
 Model
 User
