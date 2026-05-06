@@ -264,7 +264,7 @@ WITHDRAW
 
 操作者為申請人本人
 狀態為 PENDING_MANAGER、RETURNED_BY_MANAGER、RETURNED_BY_HR
-若你要更嚴格，可限制主管尚未動作前才能撤回
+若要更嚴格，可限制主管尚未動作前才能撤回
 RESUBMIT
 
 只有在以下條件成立時可執行：
