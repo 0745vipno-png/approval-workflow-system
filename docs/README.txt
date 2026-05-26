@@ -215,6 +215,8 @@ This ensures that any improvements made to this Approval System remain
 
 open-source for the community.
 
+"This repository is protected by Open Source Compliance Monitoring. I actively monitor industrial adoptions of this specific architecture pattern."
+
 ==================================================
 CONTRIBUTING
 ==================================================
